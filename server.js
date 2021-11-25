@@ -31,7 +31,7 @@ var server = net.createServer(function(socket) {
 })
 
 
-
+// Função que salva o payload do equipamento
 const logReceived = async(data) => {
     let date = new Date()
     let str = date.toISOString()
@@ -50,9 +50,10 @@ server.on('connection', (data) => {
     sockets.push(data)
 })
 
+// inicia o server na porta 6081
 server.listen(6081, '0.0.0.0');
 
-
+// server para enviar dados para o equipamento
 var channel = net.createServer(function(socket) {
     socket.on('data', data => {
         console.log(data.toString());
@@ -74,12 +75,15 @@ var channel = net.createServer(function(socket) {
         console.log("close", data);
     })
 })
+
 channel.on('connection', data => {
     console.log('connection', data.remoteAddress);
 })
+
+// inciando na porta 21
 channel.listen(21, '0.0.0.0');
 
-const requestListener = function(req, res) {
+const httpServer = http.createServer((req, res) => {
     var queryData = url.parse(req.url, true).query;
     res.writeHead(200);
 
@@ -95,6 +99,7 @@ const requestListener = function(req, res) {
     contentFile += "\n]"
 
     if (queryData.json) {
+        // enviando json
         res.end(contentFile);
     } else {
         // gerando json
@@ -103,8 +108,12 @@ const requestListener = function(req, res) {
         // gerando html
         let html = ""
         html += "<table>\n"
+
+        // iterando sobre as linhas
         json.forEach(e => {
             html += "<tr>\n"
+
+            // iterando sobre as colunas
             e.forEach(e => {
                 html += `<td>${e}</td>`
             })
@@ -115,9 +124,9 @@ const requestListener = function(req, res) {
         // enviando para o navegador
         res.end(html);
     }
-};
+});
 
-const httpServer = http.createServer(requestListener);
+// iniciando o server na porta
 httpServer.listen(6060, 'localhost', () => {
-    console.log(`Server is running on http://localhost:6060`);
+    console.log(`Servidor Http para ler o arquivo rodando no endereço http://localhost:6060`);
 });
